@@ -1,0 +1,33 @@
+services:
+    db:
+        container_name: posthog_db
+        environment:
+            POSTGRES_DB: posthog
+            POSTGRES_PASSWORD: posthog
+            POSTGRES_USER: posthog
+        image: postgres:alpine
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+    redis:
+        container_name: posthog_redis
+        image: redis:alpine
+    web:
+        container_name: posthog_web
+        depends_on:
+            - db
+            - redis
+        environment:
+            DATABASE_URL: postgres://posthog:posthog@db:5432/posthog
+            REDIS_URL: redis://redis:6379/
+            SECRET_KEY: "3debbc64fb68ebbb984bdcfee92884838f2a433553bb243a5ca858d7f4a77c4b"
+            DISABLE_SECURE_SSL_REDIRECT: 'true'
+            SECURE_COOKIES: 'false'
+        image: posthog/posthog:latest
+        links:
+            - db:db
+            - redis:redis
+        ports:
+            - 80:8000
+volumes:
+    postgres-data:
+version: '3'
